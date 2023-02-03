@@ -82,14 +82,17 @@
         </v-row>
       </v-container>
     </v-main>
+    <Dialog :dialog="customDialog"/>
   </v-app>
 </template>
 
 <script>
 import { SlideYUpTransition, SlideYDownTransition } from 'vue2-transitions';
+import Dialog from "@/components/Dialog";
 export default {
   name: "Login",
   components: {
+    Dialog,
     SlideYDownTransition,
     SlideYUpTransition
   },
@@ -116,7 +119,65 @@ export default {
         return;
       }
       this.loading = true;
-      this.$router.push('/dashboard');
+      fetch(this.$store.state.baseUrl+'auth',{
+        method: 'POST',
+        headers:{
+          'Content-Type':'application/json'
+        },
+        body: JSON.stringify({
+          email: this.email,
+          password: this.password
+        })
+      }).then(res=>{
+        return res.json();
+      }).then(data=>{
+        this.loading = false;
+        if(data.status === 200){
+          this.$store.commit('setAuth',{
+            token: data.token,
+            user: data.user
+          });
+          this.$cookies.set('kbt',data.token);
+          if(typeof this.$route.query.goto !== 'undefined' && this.$route.query.goto !== ''){
+            return this.$router.push(this.$route.query.goto).then(()=>{
+            }).catch(err=>{
+              window.location.reload();
+            });
+          }
+          return this.$router.push('/').then(()=>{
+          }).catch(err=>{
+            window.location.reload();
+          });
+        }
+        this.customDialog = {
+          show: true,
+          persistent: true,
+          text: data.message,
+          icon: data.status===200?'success':'error',
+          closeBtn: {
+            text: data.status===200?'Proceed':'Close',
+            color: data.status===201?'primary':'red',
+            click: ()=>{
+              this.customDialog.show = false;
+            }
+          }
+        };
+      }).catch(err=>{
+        this.loading = false;
+        this.customDialog = {
+          show: true,
+          persistent: true,
+          text: err.message,
+          icon: 'error',
+          closeBtn: {
+            text: 'Close',
+            color: 'red',
+            click: ()=>{
+              this.customDialog.show = false;
+            }
+          }
+        };
+      });
     }
   }
 }

@@ -5,6 +5,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
+    baseUrl: 'http://172.20.10.6:5000/',
     loggedIn: true,
     menu: [
       {
@@ -38,11 +39,17 @@ export default new Vuex.Store({
         'to': '/loans',
       }
     ],
-    showRightSidebar: false
+    showRightSidebar: false,
+    user:{},
+    jwt: '',
   },
   getters: {
   },
   mutations: {
+    setAuth: (state, payload)=>{
+      state.jwt = payload.token;
+      state.user = payload.user;
+    },
   },
   actions: {
   },
