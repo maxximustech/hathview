@@ -94,17 +94,17 @@
                     <v-card flat height="120" width="150" color="primary lighten-2" class="pa-0 rounded-xl">
                       <v-card-text style="height: 100%;" class="pa-3 d-flex flex-column text-center" v-ripple @click="$router.push('/thrifts')">
                         <div class="text-center">
-                          <v-avatar size="60" color="white">
+                          <v-avatar size="60" color="grey lighten-4">
                             <v-icon size="40" color="primary lighten-2">mdi-plus</v-icon>
                           </v-avatar>
                         </div>
-                        <div class="text-subtitle-2 mt-auto">Add New</div>
+                        <div class="text-subtitle-2 mt-auto white--text">Add New</div>
                       </v-card-text>
                     </v-card>
                   </div>
                 </Flicking>
               </div>
-              <div>
+              <div class="mt-8">
                 <div class="d-flex mb-2">
                   <h4 class="text-subtitle-1 font-weight-bold align-self-center">Active cooperatives</h4>
                   <v-spacer/>
@@ -132,11 +132,11 @@
                     <v-card flat height="120" width="150" color="primary lighten-2" class="pa-0 rounded-xl">
                       <v-card-text style="height: 100%;" class="pa-3 d-flex flex-column text-center" v-ripple @click="$router.push('/cooperatives')">
                         <div class="text-center">
-                          <v-avatar size="60" color="white">
+                          <v-avatar size="60" color="grey lighten-4">
                             <v-icon size="40" color="primary lighten-2">mdi-plus</v-icon>
                           </v-avatar>
                         </div>
-                        <div class="text-subtitle-2 mt-auto">Add New</div>
+                        <div class="text-subtitle-2 mt-auto white--text">Add New</div>
                       </v-card-text>
                     </v-card>
                   </div>
@@ -212,7 +212,7 @@ export default {
     notFound: false,
     fundDialog: {
       show: false,
-      amount: true
+      amount: ''
     }
   }),
   created(){
