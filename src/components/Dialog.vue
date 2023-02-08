@@ -5,7 +5,7 @@
       :persistent="cd.persistent"
       style="z-index: 1003;"
   >
-    <v-card class="pa-4">
+    <v-card class="rounded-xl pa-4">
       <v-card-text class="pt-4">
         <div class="text-center" style="word-break: break-word;">
           <div v-if="cd.icon === 'success'" class="kbanim-icon kbanim-success kbanim-animate-success-icon" style="display: flex;">
@@ -25,6 +25,8 @@
         <template v-for="btn in cd.buttons">
           <v-btn
               v-if="btn != null"
+              :loading="typeof btn.loading === 'boolean'?btn.loading:undefined"
+              :disabled="typeof btn.disabled === 'boolean'?btn.disabled:undefined"
               :color="typeof btn.color !== 'undefined' && btn.color != null ? btn.color : 'primary'"
               text
               @click="btn.click"
@@ -34,6 +36,8 @@
         </template>
         <v-btn
             v-if="typeof cd.closeBtn !== 'undefined' && cd.closeBtn != null"
+            :loading="typeof cd.closeBtn.loading === 'boolean'?cd.closeBtn.loading:undefined"
+            :disabled="typeof cd.closeBtn.disabled === 'boolean'?cd.closeBtn.disabled:undefined"
             :color="typeof cd.closeBtn.color !== 'undefined' && cd.closeBtn.color != null ? cd.closeBtn.color : 'primary'"
             text
             @click="cd.closeBtn.click"

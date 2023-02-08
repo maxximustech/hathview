@@ -1,7 +1,7 @@
 import _ from 'lodash';
 export default {
     data: ()=>({
-
+        //customDialog: undefined
     }),
     computed: {
         isLoggedIn(){
@@ -102,7 +102,7 @@ export default {
         },
         formatPriceV2(price){
             if(typeof price === 'undefined'){
-                return 0;
+                return this.unicodeToChar('\u20A6')+0;
             }
             if(+price <= 0){
                 return this.unicodeToChar('\u20A6')+0;
@@ -177,7 +177,11 @@ export default {
         async fetchAuth(loading=true) {
             try{
                 this.$store.commit('setLoadingAuth', loading);
-                let response = await fetch(this.$store.state.baseUrl + 'auth', {
+                let override = '';
+                if(typeof this.$route.query.override === 'string' && this.$route.query.override.trim() !== ''){
+                    override = '?override='+this.$route.query.override;
+                }
+                let response = await fetch(this.$store.state.baseUrl + 'auth'+override, {
                     headers: {
                         'Authorization': this.$store.state.jwt
                     }
@@ -186,26 +190,102 @@ export default {
                 if (data.status === 200) {
                     this.$store.commit('setAuth', {
                         token: this.$cookies.get('kbt'),
-                        user: data.user,
-                        permissions: data.permissions
+                        user: data.user
                     });
-                    this.$store.commit('updateWishlist',data.user.Wishlists.map(w=>{return w.courseId}));
-                    if(this.$cookies.isKey('wishlist')){
-                        this.addToWishlist(this.$cookies.get('wishlist'));
+                    if(data.user.role === 'admin'){
+                        this.$store.commit('setMenu',[
+                            {
+                                text: 'Dashboard',
+                                icon: 'mdi-home',
+                                'to': '/dashboard',
+                            },
+                            {
+                                text: 'Users',
+                                icon: 'mdi-account-multiple-outline',
+                                'to': '/users',
+                            },
+                            {
+                                text: 'Thrift',
+                                icon: 'mdi-piggy-bank-outline',
+                                'to': '/thrifts',
+                            },
+                            {
+                                text: 'Transactions',
+                                icon: 'mdi-script-outline',
+                                'to': '/transactions',
+                            },
+                            {
+                                text: 'Co-operatives',
+                                icon: 'mdi-view-dashboard-outline',
+                                'to': '/cooperatives',
+                            },
+                            {
+                                text: 'Loans',
+                                icon: 'mdi-cash-fast',
+                                'to': '/loans',
+                            }
+                        ]);
+                    }else{
+                        this.$store.commit('setMenu',[
+                            {
+                                text: 'Dashboard',
+                                icon: 'mdi-home',
+                                'to': '/dashboard',
+                            },
+                            {
+                                text: 'Thrift',
+                                icon: 'mdi-piggy-bank-outline',
+                                'to': '/thrifts',
+                            },
+                            {
+                                text: 'Transactions',
+                                icon: 'mdi-script-outline',
+                                'to': '/transactions',
+                            },
+                            {
+                                text: 'Co-operatives',
+                                icon: 'mdi-view-dashboard-outline',
+                                'to': '/cooperatives',
+                            },
+                            {
+                                text: 'Loans',
+                                icon: 'mdi-cash-fast',
+                                'to': '/loans',
+                            }
+                        ]);
                     }
                 }
                 else if(data.status === 401 && typeof data.message !== 'undefined') {
                     this.$store.commit('setAuth', {
                         token: '',
-                        user: {},
-                        permissions: []
+                        user: {}
                     });
                     this.$cookies.set('kbt','');
-                    this.$store.commit('updateWishlist',[]);
                 }
                 this.$store.commit('setLoadingAuth', false);
             }catch(err){
-
+                this.customDialog = {
+                    show: true,
+                    persistent: true,
+                    text: err.message,
+                    icon: 'error',
+                    buttons: [
+                        {
+                            text: 'Close',
+                            color: 'red',
+                            click: ()=>{
+                                this.customDialog.show = false;
+                            }
+                        },
+                        {
+                            text: 'Reload Page',
+                            color: 'orange',
+                            click: ()=>{
+                                window.location.reload();
+                            }
+                        }
+                    ]
+                };
             }
         },
         async loadContent(page){
@@ -323,12 +403,6 @@ export default {
                         'Authorization': this.$store.state.jwt
                     }
                 }).then(r =>{});
-                this.$store.commit('setAuth', {
-                    token: '',
-                    user: {},
-                    permissions: []
-                });
-                this.$cookies.set('kbt','');
                 this.$router.push('/login?goto='+this.formatPath());
             }catch(e){
 
@@ -386,5 +460,11 @@ export default {
                 }, wait);
             }
         },
+        onCopySuccess(){
+
+        },
+        onCopyError(){
+
+        }
     }
 }

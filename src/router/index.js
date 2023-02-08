@@ -20,7 +20,7 @@ const routes = [
     component: () => import('../views/Customers.vue')
   },
   {
-    path: '/users/:ref',
+    path: '/user/:ref',
     name: 'user',
     component: () => import('../views/SingleUser.vue')
   },
@@ -78,6 +78,11 @@ const routes = [
     path: '/reset-password',
     name: 'reset-password',
     component: () => import('../views/Auth/ConfirmNewPassword.vue')
+  },
+  {
+    path: '*',
+    name: 'not-found',
+    component: () => import('../views/NotFound.vue')
   }
 ]
 

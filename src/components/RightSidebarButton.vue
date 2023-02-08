@@ -14,25 +14,15 @@
             </v-badge>
           </div>
           <div class="d-block text-center mb-5 align-self-center">
-            <v-btn icon :ripple="false">
-              <v-menu bottom right offset-y close-on-click class="elevation-0">
-                <template v-slot:activator="{on,attrs}">
-                  <v-avatar size="30" v-bind="attrs" v-on="on">
-                    <v-img src="https://cdn.vuetifyjs.com/images/john.jpg" alt=""/>
-                  </v-avatar>
-                </template>
-                <v-list class="elevation-0">
-                  <v-list-item to="/profile/edit">
-                    <v-list-item-title class="text-subtitle-2">Edit Profile</v-list-item-title>
-                  </v-list-item>
-                  <v-list-item to="/profile/payment">
-                    <v-list-item-title class="text-subtitle-2">Payment Details</v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
+            <v-btn icon :ripple="false" to="/profile">
+              <v-avatar color="primary" size="30">
+                <v-img v-if="typeof $store.state.user.imageUrl === 'string' && $store.state.user.imageUrl !== ''" :src="$store.state.user.imageUrl"/>
+                <span class="font-weight-medium white--text" v-if="typeof $store.state.user.imageUrl !== 'string' || $store.state.user.imageUrl === ''">{{toFirstUpper($store.state.user.firstName).split('')[0]}}</span>
+              </v-avatar>
             </v-btn>
           </div>
           <v-btn
+              @click="logout"
               class="d-block text-center mb-5 align-self-center"
               icon :ripple="false"
           >

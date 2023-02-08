@@ -63,16 +63,6 @@
                           >Log in</v-btn>
                         </div>
                       </slide-y-up-transition>
-                      <slide-y-up-transition appear :delay="900">
-                        <div class="text-center mt-4">
-                          <v-btn small right text plain :color="$vuetify.theme.dark?'':'black'"
-                                 style="font-weight: 700; text-decoration: none;"
-                                 to="/signup"
-                          >
-                            Join the saving team now
-                          </v-btn>
-                        </div>
-                      </slide-y-up-transition>
                     </v-form>
                   </v-col>
                 </v-row>
@@ -97,7 +87,11 @@ export default {
     SlideYUpTransition
   },
   created() {
-
+    this.$store.commit('setAuth',{
+      token: '',
+      user: {}
+    });
+    this.$cookies.set('kbt','');
   },
   data(){
     return {
@@ -138,6 +132,68 @@ export default {
             user: data.user
           });
           this.$cookies.set('kbt',data.token);
+          if(data.user.role === 'admin'){
+            this.$store.commit('setMenu',[
+              {
+                text: 'Dashboard',
+                icon: 'mdi-home',
+                'to': '/dashboard',
+              },
+              {
+                text: 'Users',
+                icon: 'mdi-account-multiple-outline',
+                'to': '/users',
+              },
+              {
+                text: 'Thrift',
+                icon: 'mdi-piggy-bank-outline',
+                'to': '/thrifts',
+              },
+              {
+                text: 'Transactions',
+                icon: 'mdi-script-outline',
+                'to': '/transactions',
+              },
+              {
+                text: 'Co-operatives',
+                icon: 'mdi-view-dashboard-outline',
+                'to': '/cooperatives',
+              },
+              {
+                text: 'Loans',
+                icon: 'mdi-cash-fast',
+                'to': '/loans',
+              }
+            ]);
+          }else{
+            this.$store.commit('setMenu',[
+              {
+                text: 'Dashboard',
+                icon: 'mdi-home',
+                'to': '/dashboard',
+              },
+              {
+                text: 'Thrift',
+                icon: 'mdi-piggy-bank-outline',
+                'to': '/thrifts',
+              },
+              {
+                text: 'Transactions',
+                icon: 'mdi-script-outline',
+                'to': '/transactions',
+              },
+              {
+                text: 'Co-operatives',
+                icon: 'mdi-view-dashboard-outline',
+                'to': '/cooperatives',
+              },
+              {
+                text: 'Loans',
+                icon: 'mdi-cash-fast',
+                'to': '/loans',
+              }
+            ]);
+          }
           if(typeof this.$route.query.goto !== 'undefined' && this.$route.query.goto !== ''){
             return this.$router.push(this.$route.query.goto).then(()=>{
             }).catch(err=>{

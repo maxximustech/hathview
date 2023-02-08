@@ -5,43 +5,14 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    baseUrl: 'http://172.20.10.6:5000/',
-    loggedIn: true,
-    menu: [
-      {
-        text: 'Dashboard',
-        icon: 'mdi-home',
-        'to': '/dashboard',
-      },
-      {
-        text: 'Users',
-        icon: 'mdi-account-multiple-outline',
-        'to': '/users',
-      },
-      {
-        text: 'Thrift',
-        icon: 'mdi-piggy-bank-outline',
-        'to': '/thrifts',
-      },
-      {
-        text: 'Transactions',
-        icon: 'mdi-script-outline',
-        'to': '/transactions',
-      },
-      {
-        text: 'Co-operatives',
-        icon: 'mdi-view-dashboard-outline',
-        'to': '/cooperatives',
-      },
-      {
-        text: 'Loans',
-        icon: 'mdi-cash-fast',
-        'to': '/loans',
-      }
-    ],
+    baseUrl: 'https://api.hatview.ng/',//'http://172.20.10.2:5000/',
+    loggedIn: false,
+    menu: [],
     showRightSidebar: false,
     user:{},
     jwt: '',
+    loadingAuth: false,
+    contentLoaded: false
   },
   getters: {
   },
@@ -50,6 +21,18 @@ export default new Vuex.Store({
       state.jwt = payload.token;
       state.user = payload.user;
     },
+    setContentLoaded: (state, val)=>{
+      state.contentLoaded = val;
+    },
+    setLoadingAuth: (state, val)=>{
+      state.loadingAuth = val;
+    },
+    updateWallet: (state, val)=>{
+      state.user.wallet = +val;
+    },
+    setMenu: (state, payload)=>{
+      state.menu = payload;
+    }
   },
   actions: {
   },

@@ -11,6 +11,10 @@ import VueMeta from 'vue-meta'
 import VueClipboard from "vue-clipboard2"
 import VueCookies from 'vue-cookies'
 import Flicking from '@egjs/vue-flicking'
+import VueViewer from 'v-viewer'
+
+
+
 import '@egjs/vue-flicking/dist/flicking.css'
 import '@egjs/flicking-plugins/dist/pagination.css'
 
@@ -18,6 +22,7 @@ import mixins from './mixins'
 
 require('vue2-animate/dist/vue2-animate.min.css')
 require('./assets/css/style.css')
+import 'viewerjs/dist/viewer.css'
 
 Vue.use(VueClipboard)
 Vue.use(VueMeta,{
@@ -25,6 +30,10 @@ Vue.use(VueMeta,{
 })
 Vue.use(Flicking)
 Vue.use(VueCookies, { expires: '30d'})
+Vue.use(VueViewer);
+VueViewer.setDefaults({
+  title: false,
+})
 Vue.mixin(mixins);
 Vue.config.productionTip = false
 
