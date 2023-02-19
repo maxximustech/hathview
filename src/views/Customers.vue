@@ -23,9 +23,7 @@
                 <NotFound/>
               </div>
               <div v-else>
-                <v-text-field solo rounded class="rounded-xl mb-5" flat label="Search a user by name or email" hide-details clearable append-icon="mdi-magnify"
-                              v-model="searchInput"
-                              :loading="searchLoading"/>
+                <v-text-field v-model="searchInput" :loading="searchLoading" solo rounded class="rounded-xl mb-5" flat label="Search a user by name or email" hide-details clearable append-icon="mdi-magnify"/>
                 <div class="d-flex mb-2 mt-3">
                   <h6 class="text-h6 font-weight-medium mb-2">All Users</h6>
                   <v-spacer/>
@@ -34,7 +32,7 @@
                 <div v-if="customers.length <= 0" class="text-center my-10">
                   <h6 class="text-subtitle-1 text-md-h6" style="font-weight: 600;">User list is empty</h6>
                 </div>
-                <v-virtual-scroll :bench="customers.length>100?100:customers.length" :items="searchResult.length > 0?searchResult:customers" :item-height="85" height="500">
+                <v-virtual-scroll v-if="searchResult.length > 0" :bench="searchResult.length>100?100:searchResult.length" :items="searchResult" :item-height="85" height="500">
                   <template v-slot:default="{item}">
                     <v-list-item v-if="typeof item.no_result === 'undefined'" v-ripple class="rounded-xl px-6 py-2" style="background-color: white;">
                       <v-list-item-avatar>
@@ -63,6 +61,36 @@
                     </v-list-item>
                   </template>
                 </v-virtual-scroll>
+                <v-virtual-scroll v-else :bench="customers.length>100?100:customers.length" :items="customers" :item-height="85" height="500">
+                  <template v-slot:default="{item}">
+                    <v-list-item v-if="typeof item.no_result === 'undefined'" v-ripple class="rounded-xl px-6 py-2" style="background-color: white;">
+                      <v-list-item-avatar>
+                        <v-avatar color="primary" size="40">
+                          <v-img v-if="typeof item.imageUrl === 'string' && item.imageUrl !== ''" :src="item.imageUrl"/>
+                          <span class="font-weight-medium white--text" v-if="typeof item.imageUrl !== 'string' || item.imageUrl === ''">{{toFirstUpper(item.firstName).split('')[0]}}</span>
+                        </v-avatar>
+                      </v-list-item-avatar>
+                      <v-list-item-content>
+                        <v-list-item-title class="">{{toFirstUpper(item.firstName)+' '+toFirstUpper(item.lastName)}}</v-list-item-title>
+                        <v-list-item-subtitle class="">{{toFirstUpper(item.role)}}</v-list-item-subtitle>
+                      </v-list-item-content>
+                      <v-list-item-action>
+                        <v-list-item-action-text>
+                          <v-btn plain color="primary" @click="viewUserDetails(item.id)">View</v-btn>
+                        </v-list-item-action-text>
+                      </v-list-item-action>
+                    </v-list-item>
+                    <v-list-item v-else>
+                      <v-list-item-content>
+                        <v-list-item-title class="text-center">
+                          <h6 class="text-subtitle-1 text-md-h6" style="font-weight: 600;">No user found</h6>
+                          <h6 class="text-subtitle-2 text-md-subtitle-2" style="font-weight: 500;">Please try another keyword</h6>
+                        </v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
+                </v-virtual-scroll>
+
                 <v-dialog style="z-index: 1002;"
                           v-model="newUserDialog.show"
                           width="500"
@@ -182,6 +210,11 @@ import Dialog from "@/components/Dialog";
 export default {
   name: "Customers",
   components: {Dialog, NotFound, ContentLoading},
+  metaInfo(){
+    return {
+      title: 'Users'
+    }
+  },
   data: ()=>({
     customers: [],
     newUserDialog: {
@@ -257,6 +290,9 @@ export default {
     }
   },
   created(){
+    this.debouncedSearch = this.debounce(()=>{
+      this.execSearch();
+    }, 1000);
     this.loadingContent = true;
     this.s = setInterval(()=>{
       if(!this.$store.state.loadingAuth){
@@ -275,9 +311,6 @@ export default {
         this.$store.commit('setContentLoaded',false);
       }
     },500);
-    this.debouncedSearch = this.debounce(()=>{
-      this.execSearch();
-    }, 1000);
   },
   watch:{
     searchInput(val){
@@ -290,6 +323,73 @@ export default {
     },
   },
   methods: {
+    execSearch(){
+      if(this.searchInput == null || this.searchInput.trim().length < 3){
+        this.searchResult = [];
+        return;
+      }
+      this.searchLoading = true;
+      this.loadContent('search/users/'+this.searchInput.trim()).then(data=>{
+        this.searchLoading = false;
+        if(data.status === 200){
+          this.searchResult = data.result;
+          if(this.searchResult.length <= 0){
+            this.searchResult = [{
+              no_result: true
+            }];
+          }
+        }else{
+          this.customDialog = {
+            show: true,
+            persistent: true,
+            text: data.message,
+            icon: 'error',
+            buttons: [
+              {
+                text: 'Retry',
+                color: 'orange',
+                click: ()=>{
+                  this.customDialog.show = false;
+                  this.execSearch();
+                }
+              },
+              {
+                text: 'Close',
+                color: 'red',
+                click: ()=>{
+                  this.customDialog.show = false;
+                }
+              }
+            ]
+          };
+        }
+      }).catch(err=>{
+        this.searchLoading = false;
+        this.customDialog = {
+          show: true,
+          persistent: true,
+          text: err.message,
+          icon: 'error',
+          buttons: [
+            {
+              text: 'Retry',
+              color: 'orange',
+              click: ()=>{
+                this.customDialog.show = false;
+                this.execSearch();
+              }
+            },
+            {
+              text: 'Close',
+              color: 'red',
+              click: ()=>{
+                this.customDialog.show = false;
+              }
+            }
+          ]
+        };
+      });
+    },
     closeViewUser(){
       this.viewUserDialog = {
         show: false,
@@ -456,73 +556,6 @@ export default {
               click: ()=>{
                 this.customDialog.show = false;
                 this.fetchContent();
-              }
-            },
-            {
-              text: 'Close',
-              color: 'red',
-              click: ()=>{
-                this.customDialog.show = false;
-              }
-            }
-          ]
-        };
-      });
-    },
-    async execSearch(){
-      if(this.searchInput == null || this.searchInput.trim().length < 3){
-        this.searchResult = [];
-        return;
-      }
-      this.searchLoading = true;
-      this.loadContent('users?query='+this.searchInput.trim()).then(data=>{
-        this.searchLoading = false;
-        if(data.status === 200){
-          this.searchResult = data.users;
-          if(this.searchResult.length <= 0){
-            this.searchResult = [{
-              no_result: true
-            }];
-          }
-        }else{
-          this.customDialog = {
-            show: true,
-            persistent: true,
-            text: data.message,
-            icon: 'error',
-            buttons: [
-              {
-                text: 'Retry',
-                color: 'orange',
-                click: ()=>{
-                  this.customDialog.show = false;
-                  this.execSearch();
-                }
-              },
-              {
-                text: 'Close',
-                color: 'red',
-                click: ()=>{
-                  this.customDialog.show = false;
-                }
-              }
-            ]
-          };
-        }
-      }).catch(err=>{
-        this.searchLoading = false;
-        this.customDialog = {
-          show: true,
-          persistent: true,
-          text: err.message,
-          icon: 'error',
-          buttons: [
-            {
-              text: 'Retry',
-              color: 'orange',
-              click: ()=>{
-                this.customDialog.show = false;
-                this.execSearch();
               }
             },
             {

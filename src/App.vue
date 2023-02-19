@@ -44,6 +44,22 @@ export default {
         '/reset-password',
     ]
   }),
+  metaInfo(){
+    return {
+      title: 'Welcome',
+      titleTemplate: '%s | Hathview Investment',
+      link: [
+        {
+          rel: 'shortcut icon',
+          href: '/hathview-favicon.png'
+        },
+      ],
+      htmlAttrs: {
+        lang: 'en',
+        amp: true
+      }
+    }
+  },
   created() {
     this.$store.commit('setLoadingAuth',true);
     if(this.$cookies.isKey('kbt')){

@@ -305,6 +305,7 @@ export default {
                 this.curStep = 1;
                 this.cd.show = false;
                 this.pop = null;
+                this.$emit('success');
               }
             }
           }
@@ -328,7 +329,7 @@ export default {
               text: 'Retry',
               color: 'orange',
               click: ()=>{
-                this.joinThrift();
+                this.initTransaction();
               }
             }
           ]

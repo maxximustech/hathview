@@ -95,6 +95,11 @@ export default {
     SlideYDownTransition,
     SlideYUpTransition
   },
+  metaInfo(){
+    return {
+      title: 'Confirm Code'
+    }
+  },
   created(){
 
   },

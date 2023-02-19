@@ -6,13 +6,6 @@
           <v-card-text class="d-flex flex-column pa-0">
             <div class="d-flex px-4 py-4" style="width: 100%;">
               <div class="ml-auto align-self-center">
-                <v-badge bordered top dot offset-x="30" offset-y="15">
-                  <v-btn
-                      plain :ripple="false"
-                  >
-                    <v-icon>mdi-bell-outline</v-icon>
-                  </v-btn>
-                </v-badge>
                 <v-badge bordered top dot offset-x="10" offset-y="10">
                   <v-avatar size="30">
                     <v-img src="https://cdn.vuetifyjs.com/images/john.jpg" alt=""/>

@@ -84,6 +84,11 @@ export default {
   mounted() {
 
   },
+  metaInfo(){
+    return {
+      title: 'Create New Password'
+    }
+  },
   props: {
     otp: {
       type: String,

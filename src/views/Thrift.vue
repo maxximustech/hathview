@@ -340,6 +340,11 @@ import NotFound from "@/views/NotFound";
 export default {
   name: "Thrift",
   components: {NotFound, ContentLoading, Dialog},
+  metaInfo(){
+    return {
+      title: 'Thrift'
+    }
+  },
   data: ()=>({
     customDialog: undefined,
     activeThrifts: [],

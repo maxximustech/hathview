@@ -1,7 +1,7 @@
 <template>
   <v-footer>
-    <v-bottom-navigation height="80" style="width: 100%; background-color: transparent;" class="py-2 px-5 elevation-0" app>
-      <div style="position: relative; height: 60px; width: 100%;background-color: white; border-radius: 20px;" class="d-flex justify-space-around elevation-5 align-self-center">
+    <v-bottom-navigation height="80" style="width: 100%; background-color: transparent;" class="elevation-0" app>
+      <div style="position: relative; height: 80px; width: 100%;background-color: white;" class="d-flex justify-space-around align-self-center">
         <v-btn class="px-0 ml-n2" x-small v-for="(item,i) in $store.state.menu.slice(0,4)" plain :ripple="false" :to="item.to" :key="i" color="primary">
           <div class="text-center">
             <v-icon class="d-block">{{item.icon}}</v-icon>

@@ -81,6 +81,11 @@ export default {
   mounted() {
 
   },
+  metaInfo(){
+    return {
+      title: 'Forgot Password'
+    }
+  },
   data: ()=>({
     customDialog: undefined,
     email: '',

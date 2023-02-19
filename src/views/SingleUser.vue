@@ -270,6 +270,11 @@ import Dialog from "@/components/Dialog";
 export default {
   name: "SingleUser",
   components: {Dialog, NotFound, ContentLoading, EditProfile,SlideYUpTransition,SlideXLeftTransition},
+  metaInfo(){
+    return {
+      title: this.title
+    }
+  },
   destroyed() {
     try{
       clearInterval(this.s);
@@ -357,7 +362,8 @@ export default {
     passwordMinLength: 2,
     passwordMaxLength: 2,
     notFound: false,
-    imageLoading: false
+    imageLoading: false,
+    title: 'Account'
   }),
   computed:{
     formatRetry(){
@@ -799,6 +805,7 @@ export default {
           this.passwordMinLength = data.passwordMinLength;
           this.passwordMaxLength = data.passwordMaxLength;
           this.showLoader = false;
+          this.title = this.toFirstUpper(this.user.firstName) + ' ' + this.toFirstUpper(this.user.lastName);
         }else if(data.status === 401){
           return this.$router.push('/login?goto='+this.formatPath());
         }else if(data.status === 403 || data.status === 404){
@@ -1013,7 +1020,10 @@ export default {
       }).then(data=>{
         this.imageLoading = false;
         if(data.status === 201){
-          this.user.imageUrl = this.$store.state.baseUrl+'uploads/'+data.path
+          this.user.imageUrl = this.$store.state.baseUrl+'uploads/'+data.path;
+          if(this.user.id===this.$store.state.user.id){
+            this.$store.commit('updateAvatar',this.user.imageUrl);
+          }
           return;
         }
         if(data.status === 401){

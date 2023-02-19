@@ -176,6 +176,15 @@ export default {
         },
         async fetchAuth(loading=true) {
             try{
+                if(this.$store.state.jwt == null || this.$store.state.jwt.trim() === '') {
+                    this.$store.commit('setAuth', {
+                        token: '',
+                        user: {}
+                    });
+                    this.$cookies.set('kbt','');
+                    this.$store.commit('setLoadingAuth', false);
+                    return;
+                }
                 this.$store.commit('setLoadingAuth', loading);
                 let override = '';
                 if(typeof this.$route.query.override === 'string' && this.$route.query.override.trim() !== ''){
@@ -394,6 +403,32 @@ export default {
             }catch(e){
                 return null;
             }
+        },
+        logoutDialog(){
+            this.customDialog = {
+                show: true,
+                persistent: true,
+                text: 'Are you sure you want to logout from this account?',
+                icon: '',
+                buttons: [
+                    {
+                        text: 'Cancel',
+                        color: 'orange',
+                        click: ()=>{
+                            this.customDialog.show = false;
+                        }
+                    },
+
+                    {
+                        text: 'Logout',
+                        color: 'red',
+                        click: ()=>{
+                            this.customDialog.show = false;
+                            this.logout();
+                        }
+                    },
+                ]
+            };
         },
         logout(){
             try{

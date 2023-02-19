@@ -25,7 +25,7 @@
             <v-card flat color="transparent" class="">
               <v-card-text class="px-0">
                 <v-card-title>
-                  <span class="align-self-end">Outstanding loans</span>
+                  <span class="text-subtitle-1 font-weight-bold align-self-end">Outstanding loans</span>
                   <v-spacer></v-spacer>
                   <v-text-field
                       v-model="loanSearch"
@@ -118,6 +118,11 @@ import FundWallet from "@/components/FundWallet";
 export default {
   name: "Loan",
   components: {FundWallet, Dialog, NotFound, ContentLoading},
+  metaInfo(){
+    return {
+      title: 'Loans'
+    }
+  },
   data: ()=>({
     loans: [],
     s: null,

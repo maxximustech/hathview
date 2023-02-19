@@ -27,7 +27,7 @@
 
                 <div v-if="$store.state.user.role === 'admin'">
                   <v-card-title>
-                    <span class="align-self-end">Pending Fund Transactions</span>
+                    <span class="text-subtitle-1 font-weight-bold align-self-end">Pending Fund Transactions</span>
                     <v-spacer></v-spacer>
                     <v-text-field
                         v-model="fundSearch"
@@ -78,7 +78,7 @@
                   </v-data-table>
 
                   <v-card-title>
-                    <span class="align-self-end">Pending Withdrawal Transactions</span>
+                    <span class="text-subtitle-1 font-weight-bold align-self-end">Pending Withdrawal Transactions</span>
                     <v-spacer></v-spacer>
                     <v-text-field
                         v-model="withdrawalSearch"
@@ -96,9 +96,9 @@
                       no-results-text="Transaction could not be found, try another keyword"
                   >
                     <template v-slot:item.user="{ item }">
-                      <span>
-                        {{ toFirstUpper(item.User.lastName) }}
-                      </span>
+                      <v-btn small plain color="green" @click="openUserDialog(item.User)">
+                        View
+                      </v-btn>
                     </template>
                     <template v-slot:item.amount="{ item }">
                       <span>
@@ -125,8 +125,38 @@
                 </div>
 
                 <h6 class="text-h6 font-weight-medium ml-4 mt-10 mb-2">All Transactions</h6>
-                <v-text-field solo rounded class="rounded-xl mt-4 mb-2" flat label="Search a transaction by reference or details" hide-details clearable append-icon="mdi-magnify" @click:append=""/>
-                <v-virtual-scroll :bench="transactions.length>100?100:transactions.length" :items="transactions" :item-height="120" height="500">
+                <v-text-field v-model="searchInput" :loading="searchLoading" solo rounded class="rounded-xl mt-4 mb-2" flat label="Search a transaction by reference or details" hide-details clearable append-icon="mdi-magnify" @click:append=""/>
+                <v-virtual-scroll v-if="searchResult.length > 0" :bench="searchResult.length>100?100:searchResult.length" :items="searchResult" :item-height="120" height="500">
+                  <template v-slot:default="{item}">
+                    <v-list-item v-if="typeof item.no_result !== 'undefined'">
+                      <v-list-item-content>
+                        <v-list-item-title class="text-center">
+                          <h6 class="text-subtitle-1 text-md-h6" style="font-weight: 600;">No transaction found</h6>
+                        </v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                    <v-list-item v-else-if="typeof item.no_data !== 'undefined'">
+                      <v-list-item-content>
+                        <v-list-item-title class="text-center">
+                          <h6 class="text-subtitle-1 text-md-h6" style="font-weight: 600;">You don't have any transaction yet</h6>
+                        </v-list-item-title>
+                      </v-list-item-content>
+                    </v-list-item>
+                    <v-list-item three-line v-else v-ripple class="rounded-xl px-6 py-2 white" @click="openTransactionDialog(item.id)">
+                      <v-list-item-content>
+                        <v-list-item-subtitle>
+                          <v-chip class="align-self-center" dark light x-small :color="item.status===0?'orange':(item.status===1?'green':'red')"><span>{{item.status===0?'Pending':(item.status===1?'Completed':'Rejected')}}</span></v-chip>
+                        </v-list-item-subtitle>
+                        <v-list-item-title class="">{{item.data}}</v-list-item-title>
+                        <v-list-item-subtitle>{{formatDate(item.updatedAt)}}</v-list-item-subtitle>
+                      </v-list-item-content>
+                      <v-list-item-action>
+                        <span class="text-subtitle-2" :style="{'color': item.type==='debit'?'red':'green'}">{{(item.type==='debit'?'-':'+')+item.amount.toLocaleString('en-GB')}}</span>
+                      </v-list-item-action>
+                    </v-list-item>
+                  </template>
+                </v-virtual-scroll>
+                <v-virtual-scroll v-else :bench="transactions.length>100?100:transactions.length" :items="transactions" :item-height="120" height="500">
                   <template v-slot:default="{item}">
                     <v-list-item v-if="typeof item.no_result !== 'undefined'">
                       <v-list-item-content>
@@ -262,6 +292,57 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
+        <v-dialog v-if="userDialog.show" style="z-index: 1002;"
+                  v-model="userDialog.show"
+                  width="500"
+                  persistent
+        >
+          <v-card color="white" class="rounded-xl pa-8" flat>
+            <v-card-text class="ma-0 pa-0">
+              <v-row>
+                <v-col cols="4">
+                  <h6 class="text-subtitle-2">User</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{toFirstUpper(userDialog.user.firstName)}} {{toFirstUpper(userDialog.user.lastName)}}</h6>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="4">
+                  <h6 class="text-subtitle-2">Bank Name</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{userDialog.user.bank_name}}</h6>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="4">
+                  <h6 class="text-subtitle-2">Account Name</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{userDialog.user.account_name}}</h6>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="4">
+                  <h6 class="text-subtitle-2">Account Number</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{userDialog.user.account_no}}</h6>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <v-card-actions class="ma-0 pa-0 mt-3">
+              <v-spacer/>
+              <v-btn plain color="red" @click="userDialog.show = false">
+                Close
+              </v-btn>
+              <v-btn plain color="green" :to="'/user/'+userDialog.user.regId">
+                Go to profile
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </div>
     </v-main>
     <Dialog :dialog="customDialog"/>
@@ -275,6 +356,11 @@ import Dialog from "@/components/Dialog";
 export default {
   name: "Transactions",
   components: {Dialog, NotFound, ContentLoading},
+  metaInfo(){
+    return {
+      title: 'Transactions'
+    }
+  },
   data: ()=>({
     transactions: [
       {
@@ -350,6 +436,13 @@ export default {
     transactionDialog: {
       transaction: null,
       show: false
+    },
+    searchInput: '',
+    searchResult: [],
+    searchLoading: false,
+    userDialog: {
+      show: false,
+      user: null
     }
   }),
   destroyed() {
@@ -360,6 +453,9 @@ export default {
     }
   },
   created(){
+    this.debouncedSearch = this.debounce(()=>{
+      this.execSearch();
+    }, 1000);
     this.loadingContent = true;
     this.s = setInterval(()=>{
       if(!this.$store.state.loadingAuth){
@@ -374,7 +470,85 @@ export default {
       }
     },500);
   },
+  watch:{
+    searchInput(val){
+      this.debouncedSearch();
+    },
+  },
   methods:{
+    openUserDialog(user){
+      this.userDialog = {
+        show: true,
+        user: user
+      }
+    },
+    execSearch(){
+      if(this.searchInput == null || this.searchInput.trim().length < 3){
+        this.searchResult = [];
+        return;
+      }
+      this.searchLoading = true;
+      this.loadContent('search/transactions/'+this.searchInput.trim()).then(data=>{
+        this.searchLoading = false;
+        if(data.status === 200){
+          this.searchResult = data.result;
+          if(this.searchResult.length <= 0){
+            this.searchResult = [{
+              no_result: true
+            }];
+          }
+        }else{
+          this.customDialog = {
+            show: true,
+            persistent: true,
+            text: data.message,
+            icon: 'error',
+            buttons: [
+              {
+                text: 'Retry',
+                color: 'orange',
+                click: ()=>{
+                  this.customDialog.show = false;
+                  this.execSearch();
+                }
+              },
+              {
+                text: 'Close',
+                color: 'red',
+                click: ()=>{
+                  this.customDialog.show = false;
+                }
+              }
+            ]
+          };
+        }
+      }).catch(err=>{
+        this.searchLoading = false;
+        this.customDialog = {
+          show: true,
+          persistent: true,
+          text: err.message,
+          icon: 'error',
+          buttons: [
+            {
+              text: 'Retry',
+              color: 'orange',
+              click: ()=>{
+                this.customDialog.show = false;
+                this.execSearch();
+              }
+            },
+            {
+              text: 'Close',
+              color: 'red',
+              click: ()=>{
+                this.customDialog.show = false;
+              }
+            }
+          ]
+        };
+      });
+    },
     openTransactionDialog(id){
       let transaction = this.transactions.find(t=>t.id===id);
       if(transaction == null){
@@ -423,7 +597,7 @@ export default {
     decide(id,type,reason=''){
       this.decisionLoading = true;
       this.decisionId = id;
-      fetch(this.$store.state.baseUrl+'fund/review/'+id,{
+      fetch(this.$store.state.baseUrl+'transaction/review/'+id,{
         method: 'POST',
         headers:{
           'Content-Type':'application/json',

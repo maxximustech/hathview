@@ -17,21 +17,14 @@
         />
       </div>
       <div class="ml-auto align-self-center">
-        <v-badge class="mr-n3" bordered top dot offset-x="30" offset-y="15">
-          <v-btn
-              plain :ripple="false"
-          >
-            <v-icon>mdi-bell-outline</v-icon>
-          </v-btn>
-        </v-badge>
-        <v-btn icon :ripple="false" to="/profile">
+        <v-btn icon plain :ripple="false" to="/profile">
           <v-avatar color="primary" size="30">
             <v-img v-if="typeof $store.state.user.imageUrl === 'string' && $store.state.user.imageUrl !== ''" :src="$store.state.user.imageUrl"/>
             <span class="font-weight-medium white--text" v-if="typeof $store.state.user.imageUrl !== 'string' || $store.state.user.imageUrl === ''">{{toFirstUpper($store.state.user.firstName).split('')[0]}}</span>
           </v-avatar>
         </v-btn>
         <v-btn
-            @click="logout"
+            @click="logoutDialog"
             class="px-0"
             icon :ripple="false"
         >
@@ -39,12 +32,18 @@
         </v-btn>
       </div>
     </div>
+    <Dialog :dialog="customDialog"/>
   </v-app-bar>
 </template>
 
 <script>
+import Dialog from "@/components/Dialog";
 export default {
-  name: "Header"
+  name: "Header",
+  components: {Dialog},
+  data: ()=>({
+    customDialog: undefined
+  })
 }
 </script>
 

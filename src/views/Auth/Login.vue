@@ -86,6 +86,11 @@ export default {
     SlideYDownTransition,
     SlideYUpTransition
   },
+  metaInfo(){
+    return {
+      title: 'Login'
+    }
+  },
   created() {
     this.$store.commit('setAuth',{
       token: '',
@@ -127,10 +132,6 @@ export default {
       }).then(data=>{
         this.loading = false;
         if(data.status === 200){
-          this.$store.commit('setAuth',{
-            token: data.token,
-            user: data.user
-          });
           this.$cookies.set('kbt',data.token);
           if(data.user.role === 'admin'){
             this.$store.commit('setMenu',[
@@ -195,15 +196,9 @@ export default {
             ]);
           }
           if(typeof this.$route.query.goto !== 'undefined' && this.$route.query.goto !== ''){
-            return this.$router.push(this.$route.query.goto).then(()=>{
-            }).catch(err=>{
-              window.location.reload();
-            });
+            return window.location.replace(this.$route.query.goto);
           }
-          return this.$router.push('/').then(()=>{
-          }).catch(err=>{
-            window.location.reload();
-          });
+          return window.location.replace('/dashboard');
         }
         this.customDialog = {
           show: true,

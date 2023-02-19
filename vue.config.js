@@ -3,20 +3,20 @@ module.exports = defineConfig({
   transpileDependencies: [
     'vuetify'
   ],
-  publicPath: '/app',
+  publicPath: '/',
   pwa: {
-    name: 'HathView',
+    name: 'HathView Investment',
     themeColor: '#f5f5f5',
     msTileColor: '#121212',
     appleMobileWebAppCapable: 'yes',
     appleMobileWebAppStatusBarStyle: '#121212',
     iconPaths: {
-      // faviconSVG: 'img/kobbware-icon.png',
-      // favicon32: 'img/kobbware-icon.png',
-      // favicon16: 'img/kobbware-icon.png',
-      // appleTouchIcon: 'img/kobbware-icon.png',
-      // maskIcon: 'img/kobbware-icon.png',
-      // msTileImage: 'img/kobbware-icon.png',
+      faviconSVG: 'hathview-favicon.png',
+      favicon32: 'hathview-favicon.png',
+      favicon16: 'hathview-favicon.png',
+      appleTouchIcon: 'hathview-favicon.png',
+      maskIcon: 'hathview-favicon.png',
+      msTileImage: 'hathview-favicon.png',
     },
     // configure the workbox plugin
     workboxPluginMode: 'GenerateSW'

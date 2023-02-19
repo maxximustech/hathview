@@ -167,7 +167,7 @@
                     <v-btn plain :ripple="false" color="primary" @click="openCooperativeDialog(null)">Create New</v-btn>
                   </div>
                   <v-card-title>
-                    <span class="align-self-end">Admin cooperatives</span>
+                    <span class="text-subtitle-1 font-weight-bold align-self-end">Admin cooperatives</span>
                     <v-spacer></v-spacer>
                     <v-text-field
                         v-model="allCooperativeSearch"
@@ -374,6 +374,11 @@ import FundWallet from "@/components/FundWallet";
 export default {
   name: "Cooperative",
   components: {FundWallet, NotFound, ContentLoading, Dialog},
+  metaInfo(){
+    return {
+      title: 'Cooperative'
+    }
+  },
   data: ()=>({
     customDialog: undefined,
     activeCooperatives: [],

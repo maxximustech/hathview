@@ -66,6 +66,11 @@ export default {
     SlideYDownTransition,
     SlideYUpTransition
   },
+  metaInfo(){
+    return {
+      title: 'Confirm New Password'
+    }
+  },
   mounted() {
 
   },

@@ -5,7 +5,7 @@ Vue.use(Vuex)
 
 export default new Vuex.Store({
   state: {
-    baseUrl: 'https://api.hatview.ng/',//'http://172.20.10.2:5000/',
+    baseUrl: 'https://api.hathview.ng/',//'http://192.168.1.151:5000/',//'http://172.20.10.2:5000/','https://api.hatview.ng/'
     loggedIn: false,
     menu: [],
     showRightSidebar: false,
@@ -29,6 +29,9 @@ export default new Vuex.Store({
     },
     updateWallet: (state, val)=>{
       state.user.wallet = +val;
+    },
+    updateAvatar: (state, val)=>{
+      state.user.imageUrl = val;
     },
     setMenu: (state, payload)=>{
       state.menu = payload;

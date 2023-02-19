@@ -64,7 +64,7 @@
                     </div>
                     <v-calendar v-model="calendar" ref="calendar" type="month" show-week :start="formatDateOnly(start)" :end="end">
                       <template v-slot:day-label="{year,month,date,day,time}">
-                        <div @click="openCollectionDialog(year,formatMonth(month),day)" :style="{...getColor(year,formatMonth(month),day)}" class="rounded-xl pa-1">{{day===1?new Date(year,formatMonth(month),day).toLocaleString('default',{month: 'short'})+' '+day:day}}</div>
+                        <div @click="openCollectionDialog(year,formatMonth(month),day)" :style="{...getColor(year,formatMonth(month),day)}" class="rounded-xl pa-1">{{day===1?new Date(year,formatMonth(month),day).toLocaleString('default',{month: 'short'}):day}}</div>
                       </template>
                     </v-calendar>
                   </div>
@@ -126,6 +126,11 @@ import FundWallet from "@/components/FundWallet";
 export default {
   name: "SingleCooperative",
   components: {FundWallet, Dialog, ContentLoading, NotFound},
+  metaInfo(){
+    return {
+      title: this.title
+    }
+  },
   data: ()=>({
     customDialog: undefined,
     items: [
@@ -162,6 +167,7 @@ export default {
       show: false,
       amount: ''
     },
+    title: 'Loading'
   }),
   destroyed() {
     try{
@@ -272,6 +278,9 @@ export default {
         return;
       }
       let collection = this.cooperative.cooperativeCollections[index];
+      if(this.cooperative.status==='completed'&&collection.status===0){
+        return;
+      }
       this.collectionDialog = {
         show: true,
         id: collection.id,
@@ -371,7 +380,8 @@ export default {
             }
           ]
           this.cooperative = this.formatUserCooperative(data.cooperative);
-          this.cooperative.cooperativeCollections = data.cooperative.cooperativeCollections.reverse();
+          this.title = this.cooperative.name;
+          //this.cooperative.cooperativeCollections = data.cooperative.cooperativeCollections.reverse();
           this.start = this.formatDateOnly(data.cooperative.Cooperative.startDate);
           this.end = this.formatDateOnly((new Date(data.cooperative.Cooperative.startDate).getTime() + (86400000 * data.cooperative.Cooperative.days) - 1000));
         }else if(data.status === 401){

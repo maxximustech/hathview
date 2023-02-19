@@ -14,6 +14,11 @@ export default {
   mounted(){
 
   },
+  metaInfo(){
+    return {
+      title: 'Page Not Found'
+    }
+  },
   methods:{
     goBack(){
       window.history.back();

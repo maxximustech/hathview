@@ -66,7 +66,7 @@
           </div>
           <v-card flat color="transparent">
             <v-card-text class="px-0">
-              <div>
+              <div v-if="$store.state.user.role==='customer'">
                 <div class="d-flex mb-2">
                   <h4 class="text-subtitle-1 font-weight-bold align-self-center">Active thrifts</h4>
                   <v-spacer/>
@@ -90,7 +90,7 @@
                       </v-card-text>
                     </v-card>
                   </div>
-                  <div class="px-1 panel">
+                  <div v-if="$store.state.user.role==='customer'" class="px-1 panel">
                     <v-card flat height="120" width="150" color="primary lighten-2" class="pa-0 rounded-xl">
                       <v-card-text style="height: 100%;" class="pa-3 d-flex flex-column text-center" v-ripple @click="$router.push('/thrifts')">
                         <div class="text-center">
@@ -104,7 +104,7 @@
                   </div>
                 </Flicking>
               </div>
-              <div class="mt-8">
+              <div v-if="$store.state.user.role==='customer'" class="mt-8">
                 <div class="d-flex mb-2">
                   <h4 class="text-subtitle-1 font-weight-bold align-self-center">Active cooperatives</h4>
                   <v-spacer/>
@@ -128,7 +128,7 @@
                       </v-card-text>
                     </v-card>
                   </div>
-                  <div class="px-1 panel">
+                  <div v-if="$store.state.user.role==='customer'" class="px-1 panel">
                     <v-card flat height="120" width="150" color="primary lighten-2" class="pa-0 rounded-xl">
                       <v-card-text style="height: 100%;" class="pa-3 d-flex flex-column text-center" v-ripple @click="$router.push('/cooperatives')">
                         <div class="text-center">
@@ -141,6 +141,32 @@
                     </v-card>
                   </div>
                 </Flicking>
+              </div>
+              <div v-if="$store.state.user.role!=='admin' && collections.length > 0">
+                <div class="d-flex mt-8 mb-2">
+                  <h4 class="text-subtitle-1 font-weight-bold align-self-center">Pending Collections</h4>
+                  <v-spacer/>
+                </div>
+                <v-virtual-scroll :bench="collections.length>100?100:collections.length" :items="collections" :item-height="$store.state.user.role === 'customer'?70:90" height="500">
+                  <template v-slot:default="{item}">
+                    <v-list-item :two-line="$store.state.user.role === 'collector'"  v-ripple class="rounded-xl px-6 py-2 white" v-if="typeof item.userThrift !== 'undefined'" @click="openCollectionDialog(item)">
+                      <v-list-item-content>
+                        <v-list-item-title>
+                          Collection for {{formatDateOnly(item.start)}}{{item.userThrift.collectionType!=='daily'?' - '+formatDateOnly(item.end):''}}
+                        </v-list-item-title>
+                        <v-list-item-subtitle v-if="$store.state.user.role === 'collector'" class="">{{toFirstUpper(item.User.firstName)+' '+toFirstUpper(item.User.lastName)}}</v-list-item-subtitle>
+                      </v-list-item-content>
+                    </v-list-item>
+                    <v-list-item :two-line="$store.state.user.role === 'collector'" v-ripple class="rounded-xl px-6 py-2 white" v-if="typeof item.userCooperative !== 'undefined'" @click="openCollectionDialog(item)">
+                      <v-list-item-content>
+                        <v-list-item-title>
+                          Collection for {{formatDateOnly(item.start)}}{{item.userCooperative.collectionType!=='daily'?' - '+formatDateOnly(item.end):''}}
+                        </v-list-item-title>
+                        <v-list-item-subtitle v-if="$store.state.user.role === 'collector'" class="">{{toFirstUpper(item.User.firstName)+' '+toFirstUpper(item.User.lastName)}}</v-list-item-subtitle>
+                      </v-list-item-content>
+                    </v-list-item>
+                  </template>
+                </v-virtual-scroll>
               </div>
               <div>
                 <div class="d-flex mt-8 mb-2">
@@ -183,7 +209,119 @@
           </v-card>
         </v-col>
       </v-row>
-        <FundWallet :dialog="fundDialog"/>
+        <FundWallet :dialog="fundDialog" @success="fetchContent"/>
+        <Withdraw :dialog="withdrawDialog" @success="fetchContent"/>
+        <v-dialog v-if="transactionDialog.show" style="z-index: 1002;"
+                  v-model="transactionDialog.show"
+                  width="500"
+                  persistent
+        >
+          <v-card color="white" class="rounded-xl pa-8" flat>
+            <v-card-text class="ma-0 pa-0">
+              <div class="d-flex">
+                <v-spacer/>
+                <div class="d-inline">
+                  <div class="text-subtitle-1 font-weight-bold">
+                    <v-chip class="align-self-center" dark light x-small :color="transactionDialog.transaction.status===0?'orange':(transactionDialog.transaction.status===1?'green':'red')"><span>{{transactionDialog.transaction.status===0?'Pending':(transactionDialog.transaction.status===1?'Completed':'Rejected')}}</span></v-chip>
+                  </div>
+                </div>
+              </div>
+            </v-card-text>
+            <v-card-text class="ma-0 pa-0">
+              <v-row v-if="$store.state.user.role==='admin'">
+                <v-col cols="4">
+                  <h6 class="text-subtitle-2">User</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{toFirstUpper(transactionDialog.transaction.User.firstName)}} {{toFirstUpper(transactionDialog.transaction.User.lastName)}}</h6>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="4">
+                  <h6 class="text-subtitle-2">Amount</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{formatPriceV2(transactionDialog.transaction.amount)}}</h6>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="4">
+                  <h6 class="text-subtitle-2">Description</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{transactionDialog.transaction.data}}</h6>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="4">
+                  <h6 class="text-subtitle-2">Date</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{formatDate(transactionDialog.transaction.updatedAt)}}</h6>
+                </v-col>
+              </v-row>
+              <v-row>
+                <v-col cols="4">
+                  <h6 class="text-subtitle-2">Transaction ID</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{transactionDialog.transaction.ref}}</h6>
+                </v-col>
+              </v-row>
+            </v-card-text>
+            <v-card-actions class="ma-0 pa-0 mt-3">
+              <v-spacer/>
+              <v-btn plain color="red" @click="transactionDialog.show = false">
+                Close
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
+        <v-dialog v-if="collectionDialog.show" style="z-index: 1002;"
+                  v-model="collectionDialog.show"
+                  width="500"
+                  persistent
+        >
+          <v-card color="white" class="rounded-xl pa-8" flat>
+            <v-card-text class="ma-0 pa-0">
+              <div class="d-flex">
+                <v-spacer/>
+                <div class="d-inline">
+                  <div class="text-h5 font-weight-bold">
+                    <span>{{formatPriceV2(collectionDialog.collection.amount)}}</span>                  </div>
+                </div>
+              </div>
+            </v-card-text>
+            <v-card-text class="ma-0 pa-0">
+              <h6 v-if="typeof collectionDialog.collection.userThrift !== 'undefined'" class="text-subtitle-1 font-weight-bold">{{toFirstUpper(collectionDialog.collection.userThrift.Thrift.name)}}</h6>
+              <h6 v-if="typeof collectionDialog.collection.userCooperative !== 'undefined'" class="text-subtitle-1 font-weight-bold">{{toFirstUpper(collectionDialog.collection.userCooperative.Cooperative.name)}}</h6>
+            </v-card-text>
+            <v-card-title v-if="typeof collectionDialog.collection.userThrift !== 'undefined'" class="ma-0 pa-0 text-subtitle-1">
+              Collection for {{formatDateOnly(collectionDialog.collection.start)}}{{collectionDialog.collection.userThrift.collectionType!=='daily'?' - '+formatDateOnly(collectionDialog.collection.end):''}}
+            </v-card-title>
+            <v-card-title v-if="typeof collectionDialog.collection.userCooperative !== 'undefined'" class="ma-0 pa-0 text-subtitle-1">
+              Collection for {{formatDateOnly(collectionDialog.collection.start)}}{{collectionDialog.collection.userCooperative.collectionType!=='daily'?' - '+formatDateOnly(collectionDialog.collection.end):''}}
+            </v-card-title>
+            <v-card-text class="ma-0 pa-0">
+              <h6 class="text-subtitle-1 font-weight-bold" v-if="$store.state.user.role === 'collector'">User: {{toFirstUpper(collectionDialog.collection.User.firstName)+' '+toFirstUpper(collectionDialog.collection.User.lastName)}}</h6>
+            </v-card-text>
+            <v-card-actions class="ma-0 pa-0 mt-3">
+              <v-spacer/>
+              <v-btn plain color="red" @click="collectionDialog.show = false">
+                Close
+              </v-btn>
+              <v-btn v-if="typeof collectionDialog.collection.userThrift !== 'undefined'&&$store.state.user.wallet >= collectionDialog.collection.amount" plain color="green" :loading="collectionDialog.loading" :disabled="new Date(collectionDialog.collection.userThrift.Thrift.startDate) > new Date()" @click="payCollection">
+                {{new Date(collectionDialog.collection.userThrift.Thrift.startDate) > new Date() ? 'Starts soon':'Pay Now'}}
+              </v-btn>
+              <v-btn v-if="typeof collectionDialog.collection.userCooperative !== 'undefined'&&$store.state.user.wallet >= collectionDialog.collection.amount" plain color="green" :loading="collectionDialog.loading" :disabled="new Date(collectionDialog.collection.userCooperative.Cooperative.startDate) > new Date()" @click="payCollection">
+                {{new Date(collectionDialog.collection.userCooperative.Cooperative.startDate) > new Date() ? 'Starts soon':'Pay Now'}}
+              </v-btn>
+              <v-btn v-if="$store.state.user.wallet < collectionDialog.collection.amount" plain color="green" @click="this.fundDialog = true">
+                Fund Wallet
+              </v-btn>
+            </v-card-actions>
+          </v-card>
+        </v-dialog>
       </div>
     </v-main>
     <Dialog :dialog="customDialog"/>
@@ -191,14 +329,19 @@
 </template>
 
 <script>
-import {Pagination} from "@egjs/flicking-plugins";
 import ContentLoading from "@/components/ContentLoading";
 import NotFound from "@/views/NotFound";
 import FundWallet from "@/components/FundWallet";
 import Dialog from "@/components/Dialog";
+import Withdraw from "@/components/Withdraw";
 export default {
   name: "Home",
-  components: {Dialog, FundWallet, NotFound, ContentLoading},
+  components: {Withdraw, Dialog, FundWallet, NotFound, ContentLoading},
+  metaInfo(){
+    return {
+      title: 'Dashboard'
+    }
+  },
   data: ()=>({
     flickIndex: 0,
     panelCount: 0,
@@ -206,6 +349,7 @@ export default {
     thriftCards: [],
     transactions: [],
     cooperativeCards:[],
+    collections: [],
     s: null,
     customDialog: undefined,
     loadingContent: false,
@@ -213,7 +357,20 @@ export default {
     fundDialog: {
       show: false,
       amount: ''
-    }
+    },
+    withdrawDialog: {
+      show: false,
+      amount: ''
+    },
+    transactionDialog: {
+      transaction: null,
+      show: false
+    },
+    collectionDialog: {
+      show: false,
+      collection: null,
+      loading: false
+    },
   }),
   created(){
     this.loadingContent = true;
@@ -221,7 +378,7 @@ export default {
       if(!this.$store.state.loadingAuth){
         this.$store.commit('setContentLoaded',true);
         clearInterval(this.s);
-        if(!this.isLoggedIn){
+        if(typeof this.$store.state.user.firstName === 'undefined'){
           return this.$router.push('/login?goto='+this.formatPath());
         }
         this.fetchContent();
@@ -234,6 +391,86 @@ export default {
 
   },
   methods: {
+    payCollection(){
+      this.collectionDialog.loading = true;
+      let type = typeof this.collectionDialog.collection.userThrift !== 'undefined'?'thrift':'cooperative';
+      let ref = typeof this.collectionDialog.collection.userThrift !== 'undefined'?this.collectionDialog.collection.userThrift.ref:this.collectionDialog.collection.userCoopearative.ref;
+      fetch(this.$store.state.baseUrl+type+'/'+ref+'/pay/'+this.collectionDialog.collection.id,{
+        method: 'POST',
+        headers:{
+          'Content-Type':'application/json',
+          'Authorization':this.$store.state.jwt
+        }
+      }).then(res=>{
+        return res.json();
+      }).then(data=>{
+        if(data.status===200&&typeof data.wallet !== "undefined"){
+          this.$store.commit('updateWallet',data.wallet);
+        }
+        this.collectionDialog.loading = false;
+        this.customDialog = {
+          show: true,
+          persistent: true,
+          text: data.message,
+          icon: data.status===200?'success':'error',
+          buttons: [
+            {
+              text: 'Close',
+              color: data.status===200?'primary':'red',
+              click: ()=>{
+                this.customDialog.show = false;
+                this.collectionDialog.show = false;
+                if(data.status === 200){
+                  this.fetchContent();
+                }
+              }
+            }
+          ]
+        };
+        if(data.status===426){
+          this.customDialog.buttons.push({
+            text: 'Fund Wallet',
+            color: 'green',
+            click: ()=>{
+              this.customDialog.show = false;
+              this.fundDialog.amount = '';
+              this.fundDialog.show = true;
+            }
+          });
+        }
+      }).catch(err=>{
+        this.collectionDialog.loading = false;
+        this.customDialog = {
+          show: true,
+          persistent: true,
+          text: err.message,
+          icon: 'error',
+          buttons: [
+            {
+              text: 'Close',
+              color: 'red',
+              click: ()=>{
+                this.customDialog.show = false;
+              }
+            },
+            {
+              text: 'Retry',
+              color: 'orange',
+              click: ()=>{
+                this.payCollection();
+              }
+            }
+          ]
+        };
+      });
+    },
+    openCollectionDialog(collection){
+      this.collectionDialog = {
+        show: true,
+        collection: collection,
+        loading: false
+      }
+    },
     clickItem(click){
       if(typeof click !== 'undefined'){
         try{
@@ -347,6 +584,7 @@ export default {
               }
             ]
           }
+          this.collections = data.collections;
         }else if(data.status === 401){
           return this.$router.push('/login?goto='+this.formatPath());
         }else if(data.status === 403 || data.status === 404){
