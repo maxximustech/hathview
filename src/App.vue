@@ -26,7 +26,7 @@
 </template>
 
 <script>
-
+import update from './mixins/update'
 import Header from "@/components/Header";
 import {SlideYDownTransition} from 'vue2-transitions';
 import Footer from "@/components/Footer";
@@ -60,6 +60,7 @@ export default {
       }
     }
   },
+  mixins: [update],
   created() {
     this.$store.commit('setLoadingAuth',true);
     if(this.$cookies.isKey('kbt')){
