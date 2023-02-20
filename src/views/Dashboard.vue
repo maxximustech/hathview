@@ -147,7 +147,7 @@
                   <h4 class="text-subtitle-1 font-weight-bold align-self-center">Pending Collections</h4>
                   <v-spacer/>
                 </div>
-                <v-virtual-scroll :bench="collections.length>100?100:collections.length" :items="collections" :item-height="$store.state.user.role === 'customer'?70:90" height="500">
+                <v-virtual-scroll :bench="collections.length>100?100:collections.length" :items="collections" :item-height="$store.state.user.role === 'customer'?70:90" :height="(collections.length/10*500)>500?500:(collections.length/10*500)">
                   <template v-slot:default="{item}">
                     <v-list-item :two-line="$store.state.user.role === 'collector'"  v-ripple class="rounded-xl px-6 py-2 white" v-if="typeof item.userThrift !== 'undefined'" @click="openCollectionDialog(item)">
                       <v-list-item-content>
@@ -174,7 +174,7 @@
                   <v-spacer/>
                   <v-btn plain :ripple="false" color="primary" to="/transactions">View all</v-btn>
                 </div>
-                <v-virtual-scroll :bench="transactions.length>100?100:transactions.length" :items="transactions" :item-height="120" height="500">
+                <v-virtual-scroll :bench="transactions.length>100?100:transactions.length" :items="transactions" :item-height="120" height="500" :height="(transactions.length/10*500)>500?500:(transactions.length/10*500)">
                   <template v-slot:default="{item}">
                     <v-list-item v-if="typeof item.no_result !== 'undefined'">
                       <v-list-item-content>
