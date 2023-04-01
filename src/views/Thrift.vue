@@ -241,7 +241,6 @@
                           <v-date-picker
                               v-model="thriftDialog.starts"
                               scrollable
-                              :min="new Date().toISOString().slice(0,10)"
                           >
                             <v-spacer></v-spacer>
                             <v-btn

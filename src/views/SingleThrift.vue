@@ -39,9 +39,13 @@
                 <v-progress-linear height="10" striped class="rounded-xl" :value="thrift.progress" :color="formatThriftCardColor(thrift.progress)" background-color="grey lighten-1"></v-progress-linear>
 
                 <div class="d-flex ma-4 justify-end">
-                  <div class="d-inline text-center mr-3">
+                  <div class="d-inline text-center">
                     <h6 class="text-caption">{{new Date(thrift.Thrift.startDate) < new Date()?'Started':'Starts'}}</h6>
                     <h6 class="text-subtitle-2 font-weight-bold">{{formatDateOnly(thrift.Thrift.startDate)}}</h6>
+                  </div>
+                  <div class="d-inline text-center ml-4" v-if="$store.state.user.id !== thrift.User.id">
+                    <h6 class="text-caption">{{toFirstUpper(thrift.User.firstName)+' '+toFirstUpper(thrift.User.lastName)}}</h6>
+                    <v-btn color="green" small outlined :to="'/user/'+thrift.User.regId">View Profile</v-btn>
                   </div>
 
                   <v-divider class="mr-3" vertical v-if="false"/>
@@ -112,7 +116,7 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
-            <FundWallet :dialog="fundDialog"/>
+            <FundWallet :user="{...$store.state.user}" :dialog="fundDialog"/>
             <v-dialog v-if="loanEligible" style="z-index: 1002;"
                       v-model="loanDialog.show"
                       width="500"

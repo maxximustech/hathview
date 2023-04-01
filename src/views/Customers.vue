@@ -114,7 +114,7 @@
                             <v-text-field label="Phone" type="tel" v-model="newUserDialog.phone" :rules="rules.phone" outlined hide-details/>
                           </v-col>
                           <v-col cols="12">
-                            <v-text-field label="Email address" type="email" v-model="newUserDialog.email" :rules="rules.email" outlined hide-details/>
+                            <v-text-field label="Email address" type="email" v-model="newUserDialog.email" outlined hide-details/>
                           </v-col>
                           <v-col cols="12">
                             <v-select label="Choose a role" type="email" :items="roles" v-model="newUserDialog.role" :rules="rules.role" item-value="value" item-text="name" outlined hide-details/>
@@ -301,7 +301,7 @@ export default {
         if(!this.isLoggedIn){
           return this.$router.push('/login?goto='+this.formatPath());
         }
-        if(this.$store.state.user.role !== 'admin'){
+        if(this.$store.state.user.role === 'customer'){
           this.loadingContent = false;
           this.notFound = true;
           return;

@@ -11,14 +11,14 @@
         <v-divider class="ml-3"></v-divider>
       </v-card-title>
       <v-card-text class="pb-0">
-        <div v-if="curStep===1">
+        <div v-if="notValid">
           <h4 class="text-subtitle-2">Please update your bank information in your profile to continue.</h4>
         </div>
         <div v-if="curStep===2">
           <v-form ref="stepTwo">
             <v-row>
               <v-col cols="12">
-                <v-text-field type="tel" label="Amount" v-model="cd.amount" :rules="[v=>!!v||'Amount is required',v=>+v>0||'Amount must be valid',v=>+v>=1000||'Minimum withdrawal is '+formatPriceV2(1000)]" @keyup="cd.amount=+cd.amount>$store.state.user.wallet?$store.state.user.wallet:cd.amount" outlined/>
+                <v-text-field type="tel" label="Amount" v-model="cd.amount" :rules="[v=>!!v||'Amount is required',v=>+v>0||'Amount must be valid',v=>+v>=1000||'Minimum withdrawal is '+formatPriceV2(1000)]" @keyup="cd.amount=+cd.amount>user.wallet?user.wallet:cd.amount" outlined/>
               </v-col>
             </v-row>
           </v-form>
@@ -56,7 +56,7 @@
         >
           Close
         </v-btn>
-        <v-btn v-if="curStep===1" plain color="green" class="mr-3"
+        <v-btn v-if="notValid" plain color="green" class="mr-3"
                :ripple="false" to="/profile">Go to profile</v-btn>
         <v-btn v-if="curStep===2" plain color="green" class="mr-3"
                :loading="otpLoading" :ripple="false" :disabled="+cd.amount<=0"
@@ -85,12 +85,16 @@ export default {
           amount: '',
         };
       }
+    },
+    user:{
+      type: Object,
+      required: true
     }
   },
   created(){
-    if(this.$store.state.user.bank_name==null||this.$store.state.user.bank_name.trim()===''
-        ||this.$store.state.user.account_name==null||this.$store.state.user.account_name.trim()===''
-        ||this.$store.state.user.account_no==null||this.$store.state.user.account_no.trim()===''
+    if(this.user.payMethod==='bank'&&(this.user.bank_name==null||this.user.bank_name.trim()===''
+        ||this.user.account_name==null||this.user.account_name.trim()===''
+        ||this.user.account_no==null||this.user.account_no.trim()==='')
     ){
       this.curStep = 1;
     }else{
@@ -106,6 +110,11 @@ export default {
     resendAfter: 60
   }),
   computed:{
+    notValid(){
+      return this.user.payMethod==='bank'&&(this.user.bank_name==null||this.user.bank_name.trim()===''
+          ||this.user.account_name==null||this.user.account_name.trim()===''
+          ||this.user.account_no==null||this.user.account_no.trim()==='');
+    },
     cd:{
       get(){
         return this.dialog;
@@ -120,15 +129,19 @@ export default {
       if(!this.$refs.stepTwo.validate()){
         return;
       }
+      let override = '';
+      if(typeof this.$route.params.ref !== 'undefined' && this.$route.params.ref != null && this.$route.params.ref.toString().trim() !== ''){
+        override = '?override='+this.$route.params.ref;
+      }
       this.otpLoading = true;
-      fetch(this.$store.state.baseUrl+'auth/send-code',{
+      fetch(this.$store.state.baseUrl+'auth/send-code'+override,{
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': this.$store.state.jwt
         },
         body: JSON.stringify({
-          email: this.$store.state.user.email,
+          email: this.user.email,
           type: 'withdraw'
         })
       }).then(res=>{
@@ -218,8 +231,12 @@ export default {
         this.otp = '';
         this.curStep = 2;
       }
+      let override = '';
+      if(typeof this.$route.params.ref !== 'undefined' && this.$route.params.ref != null && this.$route.params.ref.toString().trim() !== ''){
+        override = '?override='+this.$route.params.ref;
+      }
       this.loading = true;
-      fetch(this.$store.state.baseUrl+'withdraw',{
+      fetch(this.$store.state.baseUrl+'withdraw'+override,{
         method: 'PUT',
         headers:{
           'Content-Type':'application/json',
@@ -233,7 +250,9 @@ export default {
         return res.json();
       }).then(data=>{
         if(data.status===201&&typeof data.wallet !== "undefined"){
-          this.$store.commit('updateWallet',data.wallet);
+          if(this.$store.state.user.id===this.user.id){
+            this.$store.commit('updateWallet',data.wallet);
+          }
         }
         this.loading = false;
         this.customDialog = {

@@ -39,9 +39,13 @@
                   <v-progress-linear height="10" striped class="rounded-xl" :value="cooperative.progress" :color="formatCooperativeCardColor(cooperative.progress)" background-color="grey lighten-1"></v-progress-linear>
 
                   <div class="d-flex ma-4 justify-end">
-                    <div class="d-inline text-center mr-3">
+                    <div class="d-inline text-center">
                       <h6 class="text-caption">{{new Date(cooperative.Cooperative.startDate) < new Date()?'Started':'Starts'}}</h6>
                       <h6 class="text-subtitle-2 font-weight-bold">{{formatDateOnly(cooperative.Cooperative.startDate)}}</h6>
+                    </div>
+                    <div class="d-inline text-center ml-4" v-if="$store.state.user.id !== cooperative.User.id">
+                      <h6 class="text-caption">{{toFirstUpper(cooperative.User.firstName)+' '+toFirstUpper(cooperative.User.lastName)}}</h6>
+                      <v-btn color="green" small outlined :to="'/user/'+cooperative.User.regId">View Profile</v-btn>
                     </div>
 
                     <v-divider class="mr-3" vertical v-if="false"/>
@@ -109,7 +113,7 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
-            <FundWallet :dialog="fundDialog"/>
+            <FundWallet :user="{...$store.state.user}" :dialog="fundDialog"/>
           </div>
         </v-col>
       </v-row>

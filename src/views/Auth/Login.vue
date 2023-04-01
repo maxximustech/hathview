@@ -12,7 +12,7 @@
                       <h4 class="text-h4 text-xs-h5 text-md-h3" style="font-weight: 700;">Login</h4>
                     </slide-y-up-transition>
                     <slide-y-up-transition appear :delay="400">
-                      <h6 class="text-subtitle-2 mt-2 mt-md-4" style="font-weight: 600;">Enter your email and password to continue</h6>
+                      <h6 class="text-subtitle-2 mt-2 mt-md-4" style="font-weight: 600;">Enter your username and password to continue</h6>
                     </slide-y-up-transition>
                   </v-col>
                   <v-col cols="12">
@@ -23,11 +23,9 @@
                       <slide-y-up-transition appear :delay="500">
                         <v-text-field
                             :light="!$vuetify.theme.dark"
-                            label="Email Address"
-                            prepend-inner-icon="mdi-email"
-                            type="email"
+                            label="Username"
+                            prepend-inner-icon="mdi-account"
                             v-model="email"
-                            :rules="emailRule"
                             outlined></v-text-field>
                       </slide-y-up-transition>
                       <slide-y-up-transition appear :delay="600">
@@ -104,8 +102,7 @@ export default {
       showPass: false,
       email: '',
       emailRule: [
-        v => !!v || 'E-mail is required',
-        v => /.+@.+\..+/.test(v) || 'E-mail must be valid',
+        v => !!v || 'Input is required',
       ],
       password: '',
       valid: true,
@@ -133,7 +130,7 @@ export default {
         this.loading = false;
         if(data.status === 200){
           this.$cookies.set('kbt',data.token);
-          if(data.user.role === 'admin'){
+          if(data.user.role !== 'customer'){
             this.$store.commit('setMenu',[
               {
                 text: 'Dashboard',

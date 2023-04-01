@@ -309,13 +309,21 @@
               </v-row>
               <v-row>
                 <v-col cols="4">
+                  <h6 class="text-subtitle-2">Payment Method</h6>
+                </v-col>
+                <v-col cols="8" class="text-right">
+                  <h6 class="text-subtitle-2">{{toFirstUpper(userDialog.user.payMethod)}}</h6>
+                </v-col>
+              </v-row>
+              <v-row v-if="userDialog.user.payMethod==='bank'">
+                <v-col cols="4">
                   <h6 class="text-subtitle-2">Bank Name</h6>
                 </v-col>
                 <v-col cols="8" class="text-right">
                   <h6 class="text-subtitle-2">{{userDialog.user.bank_name}}</h6>
                 </v-col>
               </v-row>
-              <v-row>
+              <v-row v-if="userDialog.user.payMethod==='bank'">
                 <v-col cols="4">
                   <h6 class="text-subtitle-2">Account Name</h6>
                 </v-col>
@@ -323,7 +331,7 @@
                   <h6 class="text-subtitle-2">{{userDialog.user.account_name}}</h6>
                 </v-col>
               </v-row>
-              <v-row>
+              <v-row v-if="userDialog.user.payMethod==='bank'">
                 <v-col cols="4">
                   <h6 class="text-subtitle-2">Account Number</h6>
                 </v-col>

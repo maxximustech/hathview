@@ -209,8 +209,8 @@
           </v-card>
         </v-col>
       </v-row>
-        <FundWallet :dialog="fundDialog" @success="fetchContent"/>
-        <Withdraw :dialog="withdrawDialog" @success="fetchContent"/>
+        <FundWallet :user="{...$store.state.user}" :dialog="fundDialog" @success="fetchContent"/>
+        <Withdraw :user="{...$store.state.user}" :dialog="withdrawDialog" @success="fetchContent"/>
         <v-dialog v-if="transactionDialog.show" style="z-index: 1002;"
                   v-model="transactionDialog.show"
                   width="500"

@@ -201,7 +201,7 @@ export default {
                         token: this.$cookies.get('kbt'),
                         user: data.user
                     });
-                    if(data.user.role === 'admin'){
+                    if(data.user.role !== 'customer'){
                         this.$store.commit('setMenu',[
                             {
                                 text: 'Dashboard',

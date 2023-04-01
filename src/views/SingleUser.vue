@@ -32,6 +32,11 @@
                           </v-avatar>
                           <h4 class="text-subtitle-2 font-weight-bold mt-2">{{toFirstUpper(user.firstName)+' '+toFirstUpper(user.lastName)}}</h4>
                           <h6 class="text-caption font-weight-medium primary--text mt-n1 mb-1">{{toFirstUpper(user.role)}}</h6>
+                          <h6 class="text-subtitle-1 font-weight-bold primary--text mt-n1 mb-1">{{formatPriceV2(user.wallet)}}</h6>
+                          <div class="d-flex justify-center">
+                            <v-btn color="green" rounded outlined small class="mr-3" @click="fundDialog.show=true">Add fund</v-btn>
+                            <v-btn color="primary" rounded outlined small @click="withdrawDialog.show=true">Withdraw</v-btn>
+                          </div>
                         </div>
                       </v-card-text>
                     </v-card>
@@ -47,34 +52,37 @@
                               <h4 class="text-h6 font-weight-bold">Personal Information</h4>
                             </v-col>
                             <v-col cols="12" sm="6">
-                              <v-text-field label="First name" v-model="user.firstName" :rules="rules.firstName" outlined hide-details/>
+                              <v-text-field label="First name" v-model="user.firstName" :rules="rules.firstName" :readonly="$store.state.user.role==='customer'" outlined hide-details/>
                             </v-col>
                             <v-col cols="12" sm="6">
-                              <v-text-field label="Last name" v-model="user.lastName" :rules="rules.lastName" outlined hide-details/>
+                              <v-text-field label="Last name" v-model="user.lastName" :rules="rules.lastName" :readonly="$store.state.user.role==='customer'" outlined hide-details/>
                             </v-col>
                             <v-col cols="12" sm="6">
-                              <v-text-field label="Phone" type="tel" v-model="user.phone" :rules="rules.phone" outlined hide-details/>
+                              <v-text-field label="Phone" type="tel" v-model="user.phone" :rules="rules.phone" :readonly="$store.state.user.role==='customer'" outlined hide-details/>
                             </v-col>
                             <v-col cols="12" sm="6">
-                              <v-text-field label="Email address" v-model="email" readonly outlined hide-details>
-                                <template v-slot:append>
-                                  <v-btn outlined class="align-self-center mt-n2" color="primary" @click="openEmailDialog">Change</v-btn>
-                                </template>
+                              <v-text-field label="Email address" type="email" v-model="user.email" :readonly="$store.state.user.role==='customer'" outlined hide-details>
                               </v-text-field>
                             </v-col>
                             <v-col cols="12" class="mt-4">
-                              <h4 class="text-h6 font-weight-bold">Bank Information</h4>
+                              <h4 class="text-h6 font-weight-bold">Payment Information</h4>
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <v-text-field label="Bank name" v-model="user.bank_name" outlined hide-details/>
+                            <v-col cols="12">
+                              <v-radio-group v-model="user.payMethod" :readonly="$store.state.user.role==='customer'" label="Payment method">
+                                <v-radio value="cash" label="Cash"/>
+                                <v-radio value="bank" label="Bank Transfer"/>
+                              </v-radio-group>
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <v-text-field label="Account name" v-model="user.account_name" outlined hide-details/>
+                            <v-col v-if="user.payMethod==='bank'" cols="12" sm="6">
+                              <v-text-field label="Bank name" v-model="user.bank_name" :readonly="$store.state.user.role==='customer'" outlined hide-details/>
                             </v-col>
-                            <v-col cols="12" sm="6">
-                              <v-text-field label="Account number" v-model="user.account_no" :rules="rules.accountNo" outlined hide-details/>
+                            <v-col v-if="user.payMethod==='bank'" cols="12" sm="6">
+                              <v-text-field label="Account name" v-model="user.account_name" :readonly="$store.state.user.role==='customer'" outlined hide-details/>
                             </v-col>
-                            <v-col cols="12" class="text-center">
+                            <v-col v-if="user.payMethod==='bank'" cols="12" sm="6">
+                              <v-text-field label="Account number" v-model="user.account_no" :readonly="$store.state.user.role==='customer'" outlined hide-details/>
+                            </v-col>
+                            <v-col cols="12" class="text-center" v-if="$store.state.user.role!=='customer'">
                               <v-btn color="primary" outlined class="mr-3" :disabled="validateBtn" :loading="loading" @click="updateData">Update</v-btn>
                               <v-btn color="orange" outlined @click="openPasswordDialog">Change Password</v-btn>
                             </v-col>
@@ -252,6 +260,8 @@
                     </v-card-actions>
                   </v-card>
                 </v-dialog>
+                <FundWallet :user="{...user}" :dialog="fundDialog" @success="fetchContent"/>
+                <Withdraw :user="{...user}" :dialog="withdrawDialog" @success="fetchContent"/>
               </div>
             </v-card-text>
           </v-card>
@@ -267,9 +277,13 @@ import {SlideYUpTransition,SlideXLeftTransition} from 'vue2-transitions';
 import ContentLoading from "@/components/ContentLoading";
 import NotFound from "@/views/NotFound";
 import Dialog from "@/components/Dialog";
+import FundWallet from "@/components/FundWallet";
+import Withdraw from "@/components/Withdraw";
 export default {
   name: "SingleUser",
-  components: {Dialog, NotFound, ContentLoading, EditProfile,SlideYUpTransition,SlideXLeftTransition},
+  components: {
+    Withdraw,
+    FundWallet, Dialog, NotFound, ContentLoading, EditProfile,SlideYUpTransition,SlideXLeftTransition},
   metaInfo(){
     return {
       title: this.title
@@ -303,6 +317,8 @@ export default {
       firstName: '',
       lastName: '',
       phone: '',
+      email: '',
+      payMethod: '',
       bank_name: '',
       account_name: '',
       account_no: ''
@@ -339,9 +355,6 @@ export default {
       oldPassword: [
         v => !!v || 'Password is required',
       ],
-      accountNo: [
-        v => !!v && v.length === 10 || 'Account No is invalid',
-      ],
     },
     emailDialog: {
       show: false,
@@ -363,7 +376,15 @@ export default {
     passwordMaxLength: 2,
     notFound: false,
     imageLoading: false,
-    title: 'Account'
+    title: 'Account',
+    fundDialog: {
+      show: false,
+      amount: ''
+    },
+    withdrawDialog: {
+      show: false,
+      amount: ''
+    },
   }),
   computed:{
     formatRetry(){
@@ -964,11 +985,11 @@ export default {
           };
           return;
         }
-        if(image.size/(1024*1024) > 1){
+        if(image.size/(1024*1024) > 2){
           this.customDialog = {
             show: true,
             persistent: false,
-            text: 'The image size is larger than 1mb. You might want to consider compressing it before upload.',
+            text: 'The image size is larger than 2mb. You might want to consider compressing it before upload.',
             icon: 'error',
             buttons: [
               {
@@ -998,12 +1019,13 @@ export default {
           newImage = image;
         }
         let formData = new FormData();
+        formData.append('upload','yes');
         formData.append('avatar',newImage);
         this.uploadAvatar(formData);
       };
       input.click();
     },
-    uploadAvatar(formData){
+    updateAvatar(path){
       let override = '';
       if(typeof this.$route.params.ref !== 'undefined' && this.$route.params.ref != null && this.$route.params.ref.toString().trim() !== ''){
         override = '?override='+this.$route.params.ref;
@@ -1012,9 +1034,12 @@ export default {
       fetch(this.$store.state.baseUrl+'user/avatar'+override,{
         method: 'PUT',
         headers: {
-          'Authorization': this.$store.state.jwt
+          'Authorization': this.$store.state.jwt,
+          'Content-Type': 'application/json'
         },
-        body: formData
+        body: JSON.stringify({
+          avatar: path
+        })
       }).then(res=>{
         return res.json();
       }).then(data=>{
@@ -1022,8 +1047,80 @@ export default {
         if(data.status === 201){
           this.user.imageUrl = this.$store.state.baseUrl+'uploads/'+data.path;
           if(this.user.id===this.$store.state.user.id){
-            this.$store.commit('updateAvatar',this.user.imageUrl);
+            if(this.$store.state.user.id===this.user.id){
+              this.$store.commit('updateAvatar',this.user.imageUrl);
+            }
           }
+          return;
+        }
+        if(data.status === 401){
+          return this.$router.push('/login?goto='+this.formatPath());
+        }
+        if(data.status === 403){
+          return this.notFound = true;
+        }
+        this.customDialog = {
+          show: true,
+          persistent: false,
+          text: data.message,
+          icon: 'error',
+          buttons: [
+            {
+              text: 'Close',
+              color: 'red',
+              click: ()=>{
+                this.customDialog.show = false;
+              }
+            },
+            {
+              text: 'Retry',
+              color: 'orange',
+              click: ()=>{
+                this.customDialog.show = false;
+                this.updateAvatar(path);
+              }
+            },
+          ]
+        };
+      }).catch(err=>{
+        this.imageLoading = false;
+        this.customDialog = {
+          show: true,
+          persistent: false,
+          text: err.message,
+          icon: 'error',
+          buttons: [
+            {
+              text: 'Close',
+              color: 'red',
+              click: ()=>{
+                this.customDialog.show = false;
+              }
+            },
+            {
+              text: 'Retry',
+              color: 'orange',
+              click: ()=>{
+                this.customDialog.show = false;
+                this.updateAvatar(path);
+              }
+            },
+          ]
+        };
+      });
+    },
+    uploadAvatar(formData){
+      this.imageLoading = true;
+      fetch(this.$store.state.baseUrl+'upload.php',{
+        method: 'POST',
+        mode: 'cors',
+        body: formData
+      }).then(res=>{
+        return res.json();
+      }).then(data=>{
+        this.imageLoading = false;
+        if(data.status === 200){
+          this.updateAvatar(data.files[0]);
           return;
         }
         if(data.status === 401){

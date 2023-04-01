@@ -107,6 +107,10 @@ export default {
           amount: '',
         };
       }
+    },
+    user:{
+      type: Object,
+      required: true
     }
   },
   created(){
@@ -203,6 +207,7 @@ export default {
           newImage = image;
         }
         let formData = new FormData();
+        formData.append('upload','yes');
         formData.append('file',newImage);
         this.uploadImage(formData);
       };
@@ -210,8 +215,9 @@ export default {
     },
     uploadImage(formData){
       this.imageLoading = true;
-      fetch(this.$store.state.baseUrl+'upload',{
-        method: 'PUT',
+      fetch(this.$store.state.baseUrl+'upload.php',{
+        method: 'POST',
+        mode: 'cors',
         headers: {
           'Authorization': this.$store.state.jwt
         },
@@ -220,8 +226,8 @@ export default {
         return res.json();
       }).then(data=>{
         this.imageLoading = false;
-        if(data.status === 201){
-          this.pop = this.$store.state.baseUrl+'uploads/'+data.path
+        if(data.status === 200){
+          this.pop = this.$store.state.baseUrl+'uploads/'+data.files[0];
           return;
         }
         this.customDialog = {
@@ -272,8 +278,12 @@ export default {
       this.curStep = 1;
     },
     initTransaction(){
+      let override = '';
+      if(typeof this.$route.params.ref !== 'undefined' && this.$route.params.ref != null && this.$route.params.ref.toString().trim() !== ''){
+        override = '?override='+this.$route.params.ref;
+      }
       this.loading = true;
-      fetch(this.$store.state.baseUrl+'fund',{
+      fetch(this.$store.state.baseUrl+'fund'+override,{
         method: 'PUT',
         headers:{
           'Content-Type':'application/json',
@@ -287,7 +297,9 @@ export default {
         return res.json();
       }).then(data=>{
         if(data.status===201&&typeof data.wallet !== "undefined"){
-          this.$store.commit('updateWallet',data.wallet);
+          if(this.$store.state.user.id===this.user.id){
+            this.$store.commit('updateWallet',data.wallet);
+          }
         }
         this.loading = false;
         this.customDialog = {

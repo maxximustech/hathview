@@ -103,7 +103,7 @@
             </v-card-actions>
           </v-card>
         </v-dialog>
-        <FundWallet :dialog="fundDialog"/>
+        <FundWallet :user="{...$store.state.user}" :dialog="fundDialog"/>
       </div>
       <Dialog :dialog="customDialog"/>
     </v-main>

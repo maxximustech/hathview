@@ -15,6 +15,9 @@ export default {
         }
     },
     created() {
+        if(process.env.VUE_APP_ENV==='development'){
+            return;
+        }
         // Listen for our custom event from the SW registration
         document.addEventListener('swUpdated', this.updateAvailable, { once: true })
 

@@ -267,7 +267,6 @@
                           <v-date-picker
                               v-model="cooperativeDialog.starts"
                               scrollable
-                              :min="new Date().toISOString().slice(0,10)"
                           >
                             <v-spacer></v-spacer>
                             <v-btn
@@ -357,7 +356,7 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
-            <FundWallet :dialog="fundDialog"/>
+            <FundWallet :user="{...$store.state.user}" :dialog="fundDialog"/>
           </div>
         </v-col>
       </v-row>
