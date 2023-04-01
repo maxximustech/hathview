@@ -27,7 +27,7 @@
                 <div class="d-flex mb-2 mt-3">
                   <h6 class="text-h6 font-weight-medium mb-2">All Users</h6>
                   <v-spacer/>
-                  <v-btn plain :ripple="false" color="primary" @click="openNewUserDialog" :loading="newUserloading">Create New</v-btn>
+                  <v-btn plain :ripple="false" v-if="this.$store.state.user.role === 'admin'" color="primary" @click="openNewUserDialog" :loading="newUserloading">Create New</v-btn>
                 </div>
                 <div v-if="customers.length <= 0" class="text-center my-10">
                   <h6 class="text-subtitle-1 text-md-h6" style="font-weight: 600;">User list is empty</h6>
